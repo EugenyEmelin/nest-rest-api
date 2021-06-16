@@ -1,13 +1,21 @@
-import { Column, DataType, Model, Table } from 'sequelize-typescript';
+import {
+  BelongsToMany,
+  Column,
+  DataType,
+  Model,
+  Table,
+} from 'sequelize-typescript';
 import { ApiProperty } from '@nestjs/swagger';
+import { User } from '../users/users.model';
+import { UserRoles } from './user-roles.model';
 
-interface UserCreationAttrs {
-  email: string;
-  password: string;
+interface RoleCreationAttrs {
+  value: 'user' | 'admin' | 'publisher' | 'owner';
+  description: string;
 }
 
-@Table({ tableName: 'users' })
-export class User extends Model<User, UserCreationAttrs> {
+@Table({ tableName: 'roles' })
+export class Role extends Model<Role, RoleCreationAttrs> {
   // Id
   @Column({
     type: DataType.INTEGER,
@@ -21,50 +29,30 @@ export class User extends Model<User, UserCreationAttrs> {
   })
   id: number;
 
-  // Email
+  // Value
   @Column({
     type: DataType.STRING,
     unique: true,
     allowNull: false,
   })
   @ApiProperty({
-    example: 'user@mail.com',
-    description: 'Почтовый адрес',
+    example: 'admin',
+    description: 'Роль пользователя',
   })
-  email: string;
+  value: RoleValue;
 
-  // Пароль
+  // Description
   @Column({
     type: DataType.STRING,
     allowNull: false,
   })
   @ApiProperty({
-    example: 'DFdf32@fdsFB3E03~',
-    description: 'Пароль пользователя',
+    example: 'Администратор',
+    description: 'Описание роли',
   })
-  password: string;
+  description: string;
 
-  // Banned
-  @Column({
-    type: DataType.BOOLEAN,
-    defaultValue: false,
-  })
-  @ApiProperty({
-    example: 'false',
-    default: 'false',
-    description: 'Забанен пользователь или нет',
-  })
-  banned: boolean;
-
-  // Ban reason
-  @Column({
-    type: DataType.STRING,
-    allowNull: true,
-    defaultValue: '',
-  })
-  @ApiProperty({
-    example: 'Спам, ругань',
-    description: 'Причина бана пользователя',
-  })
-  banReason: string;
+  // Связь many to many таблиц Users и UserRoles
+  @BelongsToMany(() => User, () => UserRoles)
+  users: User[];
 }

@@ -1,4 +1,29 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import * as path from 'path';
+import * as fs from 'fs';
+import * as uuid from 'uuid';
 
 @Injectable()
-export class FilesService {}
+export class FilesService {
+  async createFile(file): Promise<string> {
+    try {
+      const fileName = uuid.v4() + '.jpg';
+      const filePath = path.resolve(__dirname, '../', 'static');
+      if (!fs.existsSync(filePath)) {
+        fs.mkdir(filePath, { recursive: true }, (err) => {
+          if (err) throw err;
+        });
+      }
+      fs.writeFile(path.join(filePath, fileName), file.buffer, (err) => {
+        if (err) throw err;
+      });
+      return fileName;
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(
+        'Ошибка записи файла',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+}
